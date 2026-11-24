@@ -220,7 +220,7 @@ let scrollSaveTimer;
 window.addEventListener('scroll',()=>{
  const page=document.getElementById('pages');
  if(!page||!document.getElementById('reader').classList.contains('active'))return;
- const rect=page.getBoundingClientRect(),total=page.scrollHeight,seen=Math.max(0,Math.min(total,-rect.top+window.innerHeight*.5));
+ const rect=page.getBoundingClientRect(),total=page.scrollHeight,seen=Math.max(0,Math.min(total,window.innerHeight-rect.top));
  document.getElementById('readerProgress').style.width=(total?seen/total*100:0)+'%';
  clearTimeout(scrollSaveTimer);scrollSaveTimer=setTimeout(()=>localStorage.setItem('komikaV5Scroll',String(window.scrollY)),250);
 });
@@ -289,7 +289,10 @@ async function pullCloudCatalog(){
    // entries that were created locally without IDs.
    const rowTitle=normalizeComicTitle(row.title);
    const local=comics.find(c=>c.id===row.id)||comics.find(c=>normalizeComicTitle(c.title)===rowTitle)||{};
-   const chapters=chapterRows.filter(ch=>ch.comic_id===row.id).map(ch=>({number:ch.chapter_number,title:ch.title||'',pages:Array.isArray(ch.pages)?ch.pages:[]}));
+   const cloudChapters=chapterRows.filter(ch=>ch.comic_id===row.id).map(ch=>({number:ch.chapter_number,title:ch.title||'',pages:Array.isArray(ch.pages)?ch.pages:[]}));
+   // Keep locally saved chapters when they have not yet been synced to Supabase.
+   // Once cloud chapters exist, cloud remains the source of truth.
+   const chapters=cloudChapters.length?cloudChapters:(Array.isArray(local.chapters)?local.chapters:[]);
    return {...local,id:row.id,title:row.title,genre:row.genre||'Action',status:row.status||'Ongoing',desc:row.description||'',img:row.cover_url||local.img||'https://placehold.co/400x550/211b32/ffffff?text=Komika',banner:row.banner_url||'',visibility:row.visibility||'published',chapters,chapter:Math.max(1,...chapters.map(x=>x.number))};
   });
   const ids=new Set(merged.map(c=>c.id));
