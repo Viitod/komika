@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0a12"><title>Komika V8.2 — Duplicate Catalog Fix</title>
+<style>
+:root{--bg:#0b0a12;--surface:#171522;--surface2:#211d30;--line:#302941;--text:#f8f6ff;--muted:#aaa4b9;--purple:#914cff;--lav:#c49aff;--gold:#ffc45b}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Arial,sans-serif;padding-bottom:82px}button,input,select,textarea{font:inherit}button{border:0;color:inherit;cursor:pointer}
+.app{max-width:520px;margin:auto;min-height:100vh;background:var(--bg);position:relative}
+header{height:68px;position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:0 17px;background:#0b0a12ed;backdrop-filter:blur(16px);border-bottom:1px solid #211d2c}
+.brand{display:flex;align-items:center;gap:9px;margin-right:auto}.brand-k{font-size:43px;line-height:1;font-weight:1000;font-style:italic;letter-spacing:-7px;padding-right:6px;color:var(--purple)}.brand-name{font-size:22px;font-weight:900;letter-spacing:-.8px}.brand-tag{font-size:10px;color:var(--muted);margin-top:-3px}
+.head-btn{width:38px;height:40px;background:transparent;color:#ded7ee;font-size:24px;display:grid;place-items:center}.avatar{width:38px;height:38px;border-radius:50%;border:2px solid var(--purple);object-fit:cover;cursor:pointer}
+.page{display:none;padding:18px 16px}.page.active{display:block}#home{padding:0}
+.hero{height:370px;position:relative;overflow:hidden;background:#211326}.hero-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 35%}.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#100d1bf2 0%,#100d1bc2 45%,#100d1b12 100%),linear-gradient(0deg,var(--bg) 0%,transparent 32%)}
+.hero-copy{position:absolute;z-index:1;left:20px;right:20px;bottom:24px;max-width:315px}.pill{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:30px;background:var(--purple);font-size:12px;font-weight:800;margin-bottom:12px}.hero h1{font-size:34px;line-height:1.04;letter-spacing:-1px;margin:0 0 10px}.hero p{font-size:13px;line-height:1.5;color:#d1cbd9;max-width:250px;margin:0 0 16px}.primary{background:var(--purple);color:white;padding:12px 17px;border-radius:12px;font-weight:800;box-shadow:0 7px 20px #7134dc40}.dots{display:flex;gap:7px;margin-top:17px}.dots i{width:8px;height:8px;border-radius:9px;background:#81798e}.dots i:first-child{width:22px;background:var(--purple)}
+.quick{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:13px 14px 2px}.quick button{height:78px;min-width:0;background:var(--surface);border:1px solid #211d30;border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:#d9c8ff;font-size:10px}.quick b{font-size:22px;line-height:1;color:var(--lav)}
+.section{padding:21px 16px 0}.section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}.section-head h2{font-size:19px;letter-spacing:-.5px;margin:0}.more{background:transparent;color:var(--lav);font-size:12px;font-weight:750;white-space:nowrap}
+.empty{min-height:104px;background:var(--surface);border:1px solid #211d30;border-radius:16px;display:grid;place-items:center;text-align:center;color:var(--muted);padding:20px}
+.continue{display:flex;align-items:center;gap:11px;padding:9px;background:var(--surface);border:1px solid #272238;border-radius:15px;min-width:0}.continue img{width:88px;height:112px;object-fit:cover;border-radius:10px;flex-shrink:0}.continue-info{min-width:0;flex:1}.continue-info h3{font-size:15px;margin:0 0 4px}.continue-info p{font-size:11px;color:var(--muted);margin:0 0 15px}.progress{height:6px;border-radius:8px;background:#373047;overflow:hidden}.progress span{display:block;height:100%;width:40%;background:var(--purple);border-radius:8px}.continue-info small{display:block;color:var(--muted);font-size:10px;margin-top:6px}.play{width:38px;height:38px;flex-shrink:0;border-radius:50%;background:#2b2340;border:1px solid #6842a6;color:var(--lav)}
+.rail{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 28px)/3.15);gap:10px;overflow-x:auto;padding:0 16px 6px;scrollbar-width:none}.rail::-webkit-scrollbar,.genre-rail::-webkit-scrollbar{display:none}.comic{min-width:0;cursor:pointer}.cover{height:174px;position:relative;overflow:hidden;border-radius:11px;background:var(--surface2);border:1px solid #39314d}.cover img{width:100%;height:100%;object-fit:cover;display:block}.rank{position:absolute;top:0;left:0;background:var(--purple);padding:4px 8px;border-radius:0 0 9px 0;font-weight:850;font-size:11px}.comic h3{font-size:12px;line-height:1.25;margin:7px 0 3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.comic small{color:var(--muted);font-size:10px}.star{color:var(--gold)}
+.genre-rail{display:grid;grid-auto-flow:column;grid-auto-columns:112px;gap:10px;overflow-x:auto;padding:0 16px 5px;scrollbar-width:none}.genre-card{height:96px;border-radius:12px;overflow:hidden;position:relative;cursor:pointer}.genre-card img{width:100%;height:100%;object-fit:cover}.genre-card:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#080710d9,transparent 75%)}.genre-card b{position:absolute;z-index:1;bottom:9px;left:9px;font-size:12px}
+.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,520px);height:70px;padding-bottom:env(safe-area-inset-bottom);z-index:30;background:#15121ff5;border-top:1px solid #302941;display:grid;grid-template-columns:repeat(3,1fr);align-items:center;backdrop-filter:blur(14px)}.bottom button{height:100%;position:relative;background:transparent;color:#aaa3b9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px}.bottom .nav-icon{font-size:22px;line-height:1}.bottom button.active{color:var(--lav)}.bottom button.active:after{content:"";position:absolute;bottom:5px;width:34px;height:3px;border-radius:5px;background:var(--purple)}
+h1{font-size:24px;letter-spacing:-.6px;margin:5px 0 4px}.muted{color:var(--muted)}.search{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:white;margin:12px 0}.chips{display:flex;gap:7px;overflow:auto;padding:4px 0 14px}.chip{white-space:nowrap;border-radius:20px;padding:7px 12px;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-size:12px}.chip.active{background:#462775;border-color:#8750d7;color:white}.catalog{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px 10px}.detail-top{display:grid;grid-template-columns:116px 1fr;gap:14px;margin:17px 0}.detail-top img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px}.detail-top h1{font-size:21px;line-height:1.12;margin:5px 0 7px}.detail-top p{font-size:12px;line-height:1.45;margin:8px 0}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.secondary{background:var(--surface2);border:1px solid var(--line);padding:10px 13px;border-radius:10px}.chapter{display:flex;justify-content:space-between;align-items:center;padding:13px 4px;border-bottom:1px solid var(--line);font-size:13px}.field{width:100%;padding:12px;margin:6px 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;color:white}.reader-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:68px;background:var(--bg);padding:8px 0;z-index:5}.reader-page{width:100%;display:block;margin:0 auto}.reader-tools{display:flex;justify-content:space-between;gap:8px;margin:16px 0}.profilebox{background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:16px}.admin-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.reader-settings{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:12px;margin:8px 0 12px}
+.setting-line{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;font-size:12px}
+.upload-label{display:inline-block;background:#42276d;color:#fff;padding:9px 12px;border-radius:9px;font-weight:750;cursor:pointer}
+.reader-pages{width:100%;max-width:100%;margin:0 auto;transition:max-width .2s}
+.reader-pages.width-narrow{max-width:82%}.reader-pages.width-normal{max-width:100%}.reader-pages.width-wide{max-width:100%}
+.reader-page{width:100%;display:block;margin:0 auto 2px;object-fit:contain;background:#100e18}
+.reader-tools button{font-size:11px;padding:10px 9px}
+.reader-progress{height:3px;background:#292438;position:sticky;top:68px;z-index:6}
+.reader-progress span{height:100%;width:0;display:block;background:var(--purple)}
+
+.admin-state{font-size:9px;letter-spacing:1px;color:#c8a5ff;background:#33214f;border:1px solid #68449a;padding:5px 8px;border-radius:20px}
+.admin-welcome{padding:16px;background:linear-gradient(130deg,#241739,#171321);border:1px solid #38264e;border-radius:16px;margin:12px 0}
+.admin-welcome>small{color:#c49aff;font-weight:800;letter-spacing:1.4px;font-size:9px}.admin-welcome h1{margin:5px 0}.admin-welcome p{font-size:12px;margin:0}
+.admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 18px}.admin-stat{background:var(--surface);border:1px solid var(--line);padding:12px 9px;border-radius:12px}.admin-stat b{font-size:21px;display:block}.admin-stat small{font-size:10px;color:var(--muted)}
+.admin-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#15121f;padding:5px;border-radius:12px;margin:14px 0}.admin-tab{background:transparent;color:var(--muted);padding:9px 4px;border-radius:9px;font-size:12px}.admin-tab.active{background:#44266e;color:#fff}
+.admin-panel{background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:13px;margin-bottom:20px}.admin-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:13px}.admin-panel-head h2{font-size:16px;margin:0}.admin-panel-head small{font-size:10px}.admin-panel-head .primary{font-size:11px;padding:10px}
+.admin-label{display:block;color:#d5cce5;font-size:11px;font-weight:700;margin:12px 0 5px}.admin-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.admin-form-grid .field{margin-top:0}
+.admin-comic-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}.admin-comic-row img{width:48px;height:62px;object-fit:cover;border-radius:7px;background:#292238}.admin-comic-meta{flex:1;min-width:0}.admin-comic-meta b{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.admin-comic-meta small{font-size:10px;color:var(--muted)}.admin-comic-buttons{display:flex;gap:5px}.admin-comic-buttons button{padding:7px 8px;font-size:10px}
+.upload-preview{height:130px;background:#100e18;border:1px dashed #514267;border-radius:12px;display:grid;place-items:center;overflow:hidden;color:var(--muted);font-size:11px}.upload-preview img{height:100%;max-width:100%;object-fit:contain}.admin-upload{display:inline-block;margin:8px 0 12px}
+.publish-options{display:flex;gap:20px;background:#100e18;border:1px solid var(--line);padding:11px;border-radius:10px;font-size:12px}.publish-options input{accent-color:var(--purple)}
+.admin-actions{margin-top:16px}.preview-result{margin-top:12px;border:1px solid #574078;border-radius:12px;padding:12px}.preview-result img{width:75px;height:100px;object-fit:cover;float:left;margin-right:12px;border-radius:8px}
+.chapter-create{padding:12px;background:#100e18;border:1px solid var(--line);border-radius:12px;margin:12px 0}.chapter-upload-preview{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}.chapter-upload-preview img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:6px}.chapter-admin-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 2px;border-bottom:1px solid var(--line);font-size:12px}.chapter-admin-row .row{gap:4px}.chapter-admin-row button{font-size:10px;padding:7px 8px}
+
+
+
+.backend-admin-login{border-top:1px solid #443452;margin-top:14px;padding-top:12px}.backend-admin-login h3{font-size:13px;margin:0 0 5px}.migration-box{margin-top:13px;padding:12px;background:#110e1b;border:1px solid #49345e;border-radius:12px}.migration-box>b{font-size:13px}.migration-box button{width:100%;margin-top:9px}.migration-track{height:7px;border-radius:20px;background:#342a43;overflow:hidden;margin-top:12px}.migration-track div{height:100%;width:0;background:#a35bff;transition:width .2s}.backend-card .field{width:100%;margin:5px 0 10px;box-sizing:border-box}.backend-card .admin-label{display:block;margin-top:8px}
+.backend-card{background:linear-gradient(145deg,#20172f,#15121f);border:1px solid #4a3565;border-radius:15px;padding:14px;margin:12px 0 16px}
+.backend-head{display:flex;align-items:center;justify-content:space-between}.backend-head small{font-size:9px;letter-spacing:1.3px;color:#c49aff;font-weight:800}.backend-head h2{font-size:17px;margin:3px 0}.backend-head p{font-size:11px;color:var(--muted);margin:0}.backend-dot{color:#777;font-size:20px}.backend-dot.online{color:#54d69a}.backend-actions{gap:7px;margin-top:10px}.backend-actions button{flex:1;font-size:10px;padding:10px 6px}.backend-note{font-size:10px;line-height:1.5;color:var(--muted);margin:10px 0 0}.schema-details{border-top:1px solid #443452;margin-top:13px;padding-top:10px}.schema-details summary{font-size:11px;color:#d5baff;cursor:pointer;font-weight:700}.schema-details pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:230px;overflow:auto;background:#0b0a12;padding:10px;border-radius:9px;font-size:9px;color:#d7c9ed}
+
+@media(min-width:600px){body{background:#07070d}.app{border-left:1px solid #242033;border-right:1px solid #242033}.hero{height:390px}}
+
+.account-actions{display:grid;gap:8px;margin-top:12px}.account-note{font-size:11px;line-height:1.5;color:var(--muted)}.account-status{padding:10px 12px;background:#171323;border:1px solid var(--line);border-radius:10px;margin:10px 0;font-size:12px}.auth-input{width:100%;box-sizing:border-box;padding:12px;margin:6px 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;color:white}.login-required{padding:20px 14px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:14px}.login-required b{display:block;margin-bottom:7px}
+</style></head>
+<body><div class="app">
+<header><div class="brand"><div class="brand-k">K</div><div><div class="brand-name">Komika</div><div class="brand-tag">Read. Enjoy. Repeat.</div></div></div><button class="head-btn" onclick="go('explore')" aria-label="Telusuri">⌕</button><button class="head-btn" onclick="go('library')" aria-label="Bookmark">♧</button><img class="avatar" src="https://images.unsplash.com/photo-1578632767115-351597cf2477?w=100&q=80" alt="Profil" onclick="go('profile')"></header>
+<main>
+<section class="page active" id="home">
+<div class="hero"><img class="hero-art" src="https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1000&q=90" alt="Featured comic art"><div class="hero-copy"><div class="pill">🔥 Popular</div><h1>Solo Leveling</h1><p>From the weakest hunter to the strongest. His journey begins now...</p><button class="primary" onclick="openComic(0)">Baca Sekarang&nbsp; →</button><div class="dots"><i></i><i></i><i></i><i></i></div></div></div>
+<div class="quick"><button onclick="go('explore')"><b>♨</b>Popular</button><button onclick="go('explore')"><b>★</b>Terbaru</button><button onclick="go('explore')"><b>▦</b>Genre</button><button onclick="go('explore')"><b>♜</b>Top Rated</button><button onclick="go('explore')"><b>◇</b>Premium</button></div>
+<div class="section"><div class="section-head"><h2>Lanjutkan Membaca</h2><button class="more" onclick="go('history')">Lihat Semua ›</button></div><div id="continueBox"></div></div>
+<div class="section"><div class="section-head"><h2>♛ Komik Populer</h2><button class="more" onclick="go('explore')">Lihat Semua ›</button></div></div><div class="rail" id="popular"></div>
+<div class="section"><div class="section-head"><h2>▦ Genre Favorit</h2><button class="more" onclick="go('explore')">Lihat Semua ›</button></div></div><div class="genre-rail" id="genres"></div>
+<div class="section"><div class="section-head"><h2>✨ Update Terbaru</h2><button class="more" onclick="go('explore')">Lihat Semua ›</button></div></div><div class="rail" id="latest"></div>
+</section>
+<section class="page" id="explore"><h1>Jelajahi Komik</h1><p class="muted">Temukan cerita berikutnya.</p><input class="search" id="search" placeholder="Cari judul atau genre..."><div class="chips" id="filters"></div><div class="catalog" id="all"></div></section>
+<section class="page" id="library"><h1>Bookmark</h1><p class="muted">Komik yang kamu simpan.</p><div class="catalog" id="saved"></div></section>
+<section class="page" id="history"><h1>Riwayat Membaca</h1><p class="muted">Lanjutkan dari chapter terakhir.</p><div id="historyList"></div></section>
+<section class="page" id="profile"><h1>Profil</h1><div class="profilebox" id="profileBox"></div><p style="margin-top:16px"><button class="secondary" onclick="go('admin')">⚙ Admin Studio</button></p></section>
+<section class="page" id="admin">
+<div class="reader-toolbar"><button class="secondary" onclick="go('profile')">← Kembali</button><b>Admin Studio</b><span class="admin-state">LOCAL</span></div>
+<div class="admin-welcome"><small>CONTROL PANEL</small><h1>Kelola Komika</h1><p class="muted">Atur katalog, chapter, dan halaman komik dari satu tempat.</p></div>
+<div class="backend-card">
+ <div class="backend-head"><div><small>V8 · READER ACCOUNTS</small><h2>Database Online</h2><p id="backendStatus">Belum terhubung ke Supabase</p></div><span id="backendDot" class="backend-dot">●</span></div>
+ <label class="admin-label">Supabase Project URL</label><input class="field" id="sbUrl" placeholder="https://project-id.supabase.co" inputmode="url">
+ <label class="admin-label">Supabase Anon / Publishable Key</label><input class="field" id="sbKey" placeholder="sb_publishable_... atau anon key" autocomplete="off">
+ <div class="row backend-actions"><button class="secondary" onclick="testBackend()">Tes koneksi</button><button class="primary" onclick="saveBackendConfig()">Simpan koneksi</button></div>
+ <div class="row backend-actions"><button class="secondary" onclick="pullCloudCatalog()">Ambil katalog online</button><button class="secondary" onclick="pushCloudCatalog()">Kirim katalog ke cloud</button></div>
+ <div class="backend-admin-login">
+ <h3>Admin Sync · Login aman</h3>
+ <p class="backend-note">Masuk memakai akun Supabase Auth yang sudah diberi role admin. Password hanya dikirim ke endpoint Auth Supabase, tidak disimpan oleh Komika.</p>
+ <label class="admin-label">Email admin</label><input class="field" id="sbAdminEmail" type="email" placeholder="admin@email.com" autocomplete="username">
+ <label class="admin-label">Password</label><input class="field" id="sbAdminPassword" type="password" placeholder="Password Supabase Auth" autocomplete="current-password">
+ <div class="row backend-actions"><button class="secondary" onclick="supabaseAdminLogin()">Login admin</button><button class="secondary" onclick="supabaseAdminLogout()">Logout</button></div>
+ <p id="adminAuthStatus" class="backend-note">Belum login sebagai admin.</p>
+ <div class="migration-box">
+  <b>Bulk Migration</b>
+  <p class="backend-note">Pindahkan katalog dan chapter lokal ke Supabase. Data lokal tidak dihapus.</p>
+  <button class="primary" id="bulkSyncBtn" onclick="pushCloudCatalog()">Sync Semua Komik & Chapter</button>
+  <div class="migration-track"><div id="migrationProgress"></div></div>
+  <p id="migrationStatus" class="backend-note">Menunggu proses sinkronisasi.</p>
+ </div>
+</div>
+<p class="backend-note">Gunakan hanya publishable key di browser. Jangan pernah memasukkan secret/service_role key.</p>
+ <details class="schema-details"><summary>Lihat SQL setup database</summary><p class="backend-note">Jalankan SQL ini di Supabase → SQL Editor. Kebijakan awal hanya mengizinkan pembacaan publik; penulisan perlu autentikasi admin (target V8).</p><pre id="schemaSql"></pre><button class="secondary" onclick="copySchema()">Salin SQL</button></details>
+</div>
+<div class="admin-stats" id="adminStats"></div>
+<div class="admin-tabs"><button class="admin-tab active" data-admin-tab="catalog" onclick="adminTab('catalog')">Katalog</button><button class="admin-tab" data-admin-tab="editor" onclick="adminTab('editor')">Komik</button><button class="admin-tab" data-admin-tab="chapters" onclick="adminTab('chapters')">Chapter</button></div>
+<div id="adminCatalog" class="admin-panel">
+<div class="admin-panel-head"><div><h2>Daftar Komik</h2><small class="muted">Pilih komik untuk mengedit detail atau chapter.</small></div><button class="primary" onclick="newComic()">＋ Komik Baru</button></div>
+<input class="field" id="adminSearch" placeholder="Cari judul komik..." oninput="renderAdminCatalog()">
+<div id="adminComicList"></div>
+</div>
+<div id="adminEditor" class="admin-panel" hidden>
+<div class="admin-panel-head"><div><h2 id="editorHeading">Komik Baru</h2><small class="muted">Informasi dan tampilan katalog.</small></div><button class="secondary" onclick="adminTab('catalog')">Batal</button></div>
+<input type="hidden" id="editComicId">
+<label class="admin-label">Judul komik</label><input class="field" id="editTitle" placeholder="Contoh: The Beginning">
+<div class="admin-form-grid"><div><label class="admin-label">Genre</label><select class="field" id="editGenre"><option>Action</option><option>Adventure</option><option>Comedy</option><option>Drama</option><option>Fantasy</option><option>Mystery</option><option>Romance</option></select></div><div><label class="admin-label">Status</label><select class="field" id="editStatus"><option>Draft</option><option>Ongoing</option><option>Complete</option><option>Hiatus</option></select></div></div>
+<label class="admin-label">Sinopsis</label><textarea class="field" id="editDesc" rows="3" placeholder="Tulis sinopsis singkat..."></textarea>
+<label class="admin-label">Cover komik</label><div class="upload-preview" id="coverPreview"><span>Belum ada cover</span></div><input class="field" id="editCoverUrl" placeholder="Atau masukkan URL gambar cover"><label class="upload-label admin-upload">＋ Upload cover dari perangkat<input id="coverFile" type="file" accept="image/*" hidden onchange="handleCoverUpload(event)"></label>
+<label class="admin-label">Banner utama (opsional)</label><input class="field" id="editBannerUrl" placeholder="URL banner / gambar hero">
+<label class="admin-label">Status publikasi</label><div class="publish-options"><label><input type="radio" name="publishState" value="draft" checked> Draft</label><label><input type="radio" name="publishState" value="published"> Published</label></div>
+<div class="row admin-actions"><button class="primary" onclick="saveComic()">Simpan Komik</button><button class="secondary" onclick="previewComic()">Preview</button></div>
+<div id="comicPreview" class="preview-result" hidden></div>
+</div>
+<div id="adminChapters" class="admin-panel" hidden>
+<div class="admin-panel-head"><div><h2>Manajemen Chapter</h2><small class="muted">Buat chapter dan susun halaman baca.</small></div></div>
+<label class="admin-label">Pilih komik</label><select class="field" id="chapterComic" onchange="renderChapterManager()"></select>
+<div class="chapter-create"><label class="admin-label">Nomor chapter</label><input class="field" id="chapterNumber" type="number" min="1" value="1"><label class="admin-label">Judul chapter (opsional)</label><input class="field" id="chapterTitle" placeholder="Contoh: Awal Perjalanan"><label class="admin-label">Upload halaman (bisa pilih banyak)</label><label class="upload-label admin-upload">＋ Pilih gambar halaman<input id="chapterFiles" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.avif,.bmp" multiple hidden onchange="previewChapterFiles(event)"></label><div id="chapterFileInfo" class="muted" style="font-size:11px;margin-top:8px">Belum ada gambar dipilih.</div><div id="chapterUploadPreview" class="chapter-upload-preview"></div><button class="primary" style="margin-top:14px" onclick="saveChapter()">Simpan Chapter</button></div>
+<h3>Chapter tersimpan</h3><div id="chapterList"></div>
+</div>
+</section>
+<section class="page" id="detail"><button class="secondary" onclick="go('explore')">← Kembali</button><div id="detailBox"></div></section>
+<section class="page" id="reader">
+<div class="reader-toolbar">
+<button class="secondary" onclick="go('detail')">← Detail</button>
+<div style="text-align:center;min-width:0"><b id="readTitle">Chapter</b><small id="readSub" class="muted" style="display:block;font-size:10px">Mode vertikal</small></div>
+<button class="secondary" onclick="readerSettings()">⚙</button>
+</div>
+<div id="readerSettingsBox" class="reader-settings" hidden>
+<div class="setting-line"><span>Lebar halaman</span><div class="row"><button class="secondary" onclick="setReaderWidth('narrow')">S</button><button class="secondary" onclick="setReaderWidth('normal')">M</button><button class="secondary" onclick="setReaderWidth('wide')">L</button></div></div>
+
+<p class="muted" style="font-size:11px;margin:8px 0 0">Pembaca tidak perlu login untuk membaca. Progress tersimpan ke akun jika kamu login.</p>
+</div>
+<div class="reader-progress"><span id="readerProgress"></span></div><div id="pages" class="reader-pages width-normal"></div>
+<div class="reader-tools"><button class="secondary" onclick="prev()">← Chapter sebelumnya</button><button class="primary" onclick="next()">Chapter berikutnya →</button></div>
+<p class="muted" style="text-align:center;font-size:11px">Progress membaca tersimpan otomatis di perangkat ini.</p>
+</section>
+</main>
+<nav class="bottom"><button class="active" data-tab="home"><span class="nav-icon">⌂</span>Home</button><button data-tab="history"><span class="nav-icon">◷</span>Riwayat</button><button data-tab="profile"><span class="nav-icon">♙</span>Profil</button></nav>
+</div>
+<script>
+const seed=[
+{title:'Solo Leveling',genre:'Action',rating:'9.8',chapter:200,status:'Ongoing',desc:'Dari hunter terlemah menjadi hunter terkuat. Perjalanan Sung Jinwoo dimulai dari sini.',img:'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&q=85'},
+{title:'Jujutsu Kaisen',genre:'Action',rating:'9.7',chapter:271,status:'Complete',desc:'Pertarungan melawan kutukan dan rahasia dunia jujutsu.',img:'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&q=85'},
+{title:'One Piece',genre:'Adventure',rating:'9.7',chapter:1145,status:'Ongoing',desc:'Petualangan bajak laut untuk menemukan harta karun legendaris.',img:'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=85'},
+{title:'Attack on Titan',genre:'Action',rating:'9.6',chapter:139,status:'Complete',desc:'Umat manusia berjuang bertahan hidup di balik tembok raksasa.',img:'https://images.unsplash.com/photo-1518709594023-6eab9bab7b23?w=600&q=85'},
+{title:'The Beginning After the End',genre:'Fantasy',rating:'9.5',chapter:198,status:'Ongoing',desc:'Raja yang terlahir kembali di dunia sihir.',img:'https://images.unsplash.com/photo-1511497584788-876760111969?w=600&q=85'},
+{title:'Eleceed',genre:'Comedy',rating:'9.4',chapter:320,status:'Ongoing',desc:'Persahabatan, kekuatan super, dan seekor kucing misterius.',img:'https://images.unsplash.com/photo-1531058020387-3be344556be6?w=600&q=85'}];
+let comics=JSON.parse(localStorage.getItem('komikaV4Comics')||'null')||seed;
+let bookmarks=JSON.parse(localStorage.getItem('komikaV4Bookmarks')||'[]');
+let history=JSON.parse(localStorage.getItem('komikaV4History')||'[]');
+let user=JSON.parse(localStorage.getItem('komikaV4User')||'null');
+let current=0,chapter=1,filter='Semua';comics.forEach(c=>{if(!c.visibility)c.visibility='published';if(!Array.isArray(c.chapters))c.chapters=[];});
+const genres=['Action','Fantasy','Romance','Drama','Mystery','Adventure','Comedy'];
+function persist(){localStorage.setItem('komikaV4Comics',JSON.stringify(comics))}
+function go(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));window.scrollTo(0,0);if(id==='profile')renderProfile();if(id==='library')renderSaved();if(id==='history')renderHistory();if(id==='admin'){renderAdmin();adminTab('catalog');loadBackendConfigUI()}}
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>go(b.dataset.tab));
+function card(c,i,rank=''){return `<article class="comic" onclick="openComic(${i})"><div class="cover"><img loading="lazy" src="${c.img}" onerror="this.src='https://placehold.co/400x550/211b32/ffffff?text=Komika'">${rank?`<b class="rank">${rank}</b>`:''}</div><h3>${c.title}</h3><small><span class="star">★ ${c.rating}</span> · Ch.${c.chapter}</small></article>`}
+function render(){const visible=comics.map((c,i)=>({c,i})).filter(x=>x.c.visibility!=='draft');document.getElementById('popular').innerHTML=visible.slice(0,8).map((x,n)=>card(x.c,x.i,n+1)).join('');document.getElementById('latest').innerHTML=[...visible].reverse().map(x=>card(x.c,x.i)).join('');let pics=['https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300','https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300','https://images.unsplash.com/photo-1518709594023-6eab9bab7b23?w=300','https://images.unsplash.com/photo-1531058020387-3be344556be6?w=300','https://images.unsplash.com/photo-1511497584788-876760111969?w=300'];document.getElementById('genres').innerHTML=genres.slice(0,5).map((g,i)=>`<div class="genre-card" onclick="filterBy('${g}')"><img loading="lazy" src="${pics[i]}"><b>${g}</b></div>`).join('');renderContinue();renderExplore()}
+function renderContinue(){let h=history[0],box=document.getElementById('continueBox');box.innerHTML=h&&comics[h.i]?`<div class="continue" onclick="openComic(${h.i});readChapter(${h.ch})"><img src="${comics[h.i].img}"><div class="continue-info"><h3>${comics[h.i].title}</h3><p>${comics[h.i].genre} · ${comics[h.i].status}</p><div class="progress"><span></span></div><small>Chapter ${h.ch}</small></div><button class="play">▶</button></div>`:'<div class="empty">Belum ada bacaan.<br>Yuk mulai baca komik!</div>'}
+function renderExplore(){document.getElementById('filters').innerHTML=['Semua',...genres].map(g=>`<button class="chip ${filter===g?'active':''}" onclick="filterBy('${g}')">${g}</button>`).join('');let q=(document.getElementById('search')?.value||'').toLowerCase();document.getElementById('all').innerHTML=comics.map((c,i)=>({c,i})).filter(x=>x.c.visibility!=='draft'&&(filter==='Semua'||x.c.genre===filter)&&(x.c.title+' '+x.c.genre).toLowerCase().includes(q)).map(x=>card(x.c,x.i)).join('')||'<div class="empty">Komik tidak ditemukan.</div>'}
+function filterBy(g){filter=g;go('explore');renderExplore()}
+document.getElementById('search').addEventListener('input',renderExplore);
+function openComic(i){current=i;let c=comics[i];document.getElementById('detailBox').innerHTML=`<div class="detail-top"><img src="${c.img}"><div><small class="muted">${c.genre} · ${c.status}</small><h1>${c.title}</h1><div class="star">★ ${c.rating} / 10</div><p class="muted">${c.desc}</p><small class="muted">${c.chapter} chapter</small></div></div><div class="row"><button class="primary" onclick="readChapter(1)">▶ Mulai Baca</button><button class="secondary" onclick="toggleBookmark()">${bookmarks.includes(current)?'♥ Tersimpan':'♡ Bookmark'}</button></div><h3 style="margin-top:24px">Daftar Chapter</h3>${Array.from({length:Math.min(20,c.chapter)},(_,n)=>`<div class="chapter" onclick="readChapter(${c.chapter-n})"><span>Chapter ${c.chapter-n}</span><small class="muted">Baca ›</small></div>`).join('')}`;go('detail')}
+function toggleBookmark(){bookmarks=bookmarks.includes(current)?bookmarks.filter(x=>x!==current):[...bookmarks,current];localStorage.setItem('komikaV4Bookmarks',JSON.stringify(bookmarks));openComic(current)}
+function renderSaved(){document.getElementById('saved').innerHTML=bookmarks.length?bookmarks.filter(i=>comics[i]).map(i=>card(comics[i],i)).join(''):'<div class="empty">Belum ada bookmark. Simpan komik favorit dari halaman detail.</div>'}
+function renderHistory(){document.getElementById('historyList').innerHTML=history.length?history.filter(h=>comics[h.i]).map(h=>`<div class="chapter" onclick="openComic(${h.i});readChapter(${h.ch})"><span>${comics[h.i].title}<br><small class="muted">Chapter ${h.ch}</small></span><b>›</b></div>`).join(''):'<div class="empty">Riwayat membaca masih kosong.</div>'}
+function getChapterPages(){try{return JSON.parse(localStorage.getItem('komikaV5Pages')||'{}')}catch(e){return {}}}
+function saveChapterPages(data){try{localStorage.setItem('komikaV5Pages',JSON.stringify(data))}catch(e){alert('Penyimpanan browser penuh. Coba kurangi ukuran gambar.')}} 
+function readChapter(n){
+ chapter=Math.max(1,n);
+ history=[{i:current,ch:chapter},...history.filter(x=>x.i!==current)].slice(0,30);
+ localStorage.setItem('komikaV4History',JSON.stringify(history));
+ localStorage.setItem('komikaV5LastRead',JSON.stringify({i:current,ch:chapter}));
+ document.getElementById('readTitle').textContent='Chapter '+chapter;
+ document.getElementById('readSub').textContent=comics[current].title+' · Scroll vertikal';
+ const key=current+'-'+chapter, stored=getChapterPages()[key]||[];
+ const pageMarkup=stored.length?stored.map((src,i)=>`<img class="reader-page" loading="${i<2?'eager':'lazy'}" src="${src}" alt="Halaman ${i+1}">`).join(''):
+ Array.from({length:5},(_,i)=>`<div style="min-height:62vh;display:grid;place-items:center;text-align:center;padding:30px;background:linear-gradient(145deg,#1a1528,#100e18);border-bottom:2px solid #302941;color:#bdb4d0"><div><div style="font-size:38px;color:#a879ff">▧</div><b>${comics[current].title}</b><p>Halaman contoh ${i+1}</p><small>Upload gambar halaman untuk mengganti preview ini</small></div></div>`).join('');
+ document.getElementById('pages').innerHTML=pageMarkup;
+ document.getElementById('readerProgress').style.width='0%';
+ go('reader');renderContinue();
+}
+function next(){readChapter(chapter+1);window.scrollTo(0,0)}
+function prev(){if(chapter>1){readChapter(chapter-1);window.scrollTo(0,0)}else go('detail')}
+function readerSettings(){const el=document.getElementById('readerSettingsBox');el.hidden=!el.hidden}
+function setReaderWidth(size){document.getElementById('pages').className='reader-pages width-'+size}
+function uploadPages(event){
+ const files=[...event.target.files||[]].filter(f=>f.type.startsWith('image/'));
+ if(!files.length)return;
+ const key=current+'-'+chapter,data=getChapterPages();
+ let pending=files.length, urls=[];
+ files.forEach(file=>{
+  const reader=new FileReader();
+  reader.onload=()=>{
+   const img=new Image();
+   img.onload=()=>{
+    const canvas=document.createElement('canvas'),max=1800,scale=Math.min(1,max/img.width);
+    canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);
+    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+    urls.push({name:file.name,src:canvas.toDataURL('image/jpeg',0.84)});
+    if(--pending===0){
+     data[key]=[...(data[key]||[]),...urls.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true})).map(x=>x.src)];
+     saveChapterPages(data);readChapter(chapter);
+     alert('Halaman berhasil ditambahkan ke chapter ini.');
+    }
+   };img.src=reader.result;
+  };reader.readAsDataURL(file);
+ });
+ event.target.value='';
+}
+let scrollSaveTimer;
+window.addEventListener('scroll',()=>{
+ const page=document.getElementById('pages');
+ if(!page||!document.getElementById('reader').classList.contains('active'))return;
+ const rect=page.getBoundingClientRect(),total=page.scrollHeight,seen=Math.max(0,Math.min(total,-rect.top+window.innerHeight*.5));
+ document.getElementById('readerProgress').style.width=(total?seen/total*100:0)+'%';
+ clearTimeout(scrollSaveTimer);scrollSaveTimer=setTimeout(()=>localStorage.setItem('komikaV5Scroll',String(window.scrollY)),250);
+});
+function renderProfile(){document.getElementById('profileBox').innerHTML=user?`<h2>${user.name}</h2><p class="muted">${user.email}</p><p>${bookmarks.length} bookmark · ${history.length} riwayat</p><button class="secondary" onclick="logout()">Keluar</button>`:`<h3>Profil pembaca (demo)</h3><input class="field" id="uname" placeholder="Nama"><input class="field" id="uemail" placeholder="Email"><button class="primary" onclick="login()">Simpan Profil</button><p class="muted" style="font-size:11px">Profil tersimpan di browser ini, belum menggunakan server.</p>`}
+function login(){let name=document.getElementById('uname').value.trim(),email=document.getElementById('uemail').value.trim();if(!name||!email)return alert('Isi nama dan email.');user={name,email};localStorage.setItem('komikaV4User',JSON.stringify(user));renderProfile()}
+function logout(){user=null;localStorage.removeItem('komikaV4User');renderProfile()}
+// V7 Supabase backend connection and catalog bridge.
+const KOMIKA_SCHEMA_SQL = `-- Komika V8: jalankan sekali di Supabase SQL Editor. Aman untuk tabel V7 yang sudah ada.
+create table if not exists public.comics (id text primary key,title text not null,genre text,status text,description text,cover_url text,banner_url text,visibility text not null default 'published',updated_at timestamptz not null default now());
+create table if not exists public.chapters (id text primary key,comic_id text not null references public.comics(id) on delete cascade,chapter_number integer not null,title text,pages jsonb not null default '[]'::jsonb,updated_at timestamptz not null default now(),unique(comic_id,chapter_number));
+create table if not exists public.reading_bookmarks (user_id uuid not null references auth.users(id) on delete cascade,comic_id text not null references public.comics(id) on delete cascade,created_at timestamptz not null default now(),primary key(user_id,comic_id));
+create table if not exists public.reading_history (user_id uuid not null references auth.users(id) on delete cascade,comic_id text not null references public.comics(id) on delete cascade,chapter_number integer not null default 1,updated_at timestamptz not null default now(),primary key(user_id,comic_id));
+alter table public.comics enable row level security; alter table public.chapters enable row level security; alter table public.reading_bookmarks enable row level security; alter table public.reading_history enable row level security;
+drop policy if exists \"Public can read published comics\" on public.comics; create policy \"Public can read published comics\" on public.comics for select using (visibility='published');
+drop policy if exists \"Public can read chapters of published comics\" on public.chapters; create policy \"Public can read chapters of published comics\" on public.chapters for select using (exists(select 1 from public.comics c where c.id=comic_id and c.visibility='published'));
+drop policy if exists \"Admin manages comics\" on public.comics; create policy \"Admin manages comics\" on public.comics for all to authenticated using ((auth.jwt()->'app_metadata'->>'role')='admin') with check ((auth.jwt()->'app_metadata'->>'role')='admin');
+drop policy if exists \"Admin manages chapters\" on public.chapters; create policy \"Admin manages chapters\" on public.chapters for all to authenticated using ((auth.jwt()->'app_metadata'->>'role')='admin') with check ((auth.jwt()->'app_metadata'->>'role')='admin');
+drop policy if exists \"Users manage own bookmarks\" on public.reading_bookmarks; create policy \"Users manage own bookmarks\" on public.reading_bookmarks for all to authenticated using (auth.uid()=user_id) with check (auth.uid()=user_id);
+drop policy if exists \"Users manage own reading history\" on public.reading_history; create policy \"Users manage own reading history\" on public.reading_history for all to authenticated using (auth.uid()=user_id) with check (auth.uid()=user_id);
+grant usage on schema public to anon,authenticated; grant select on public.comics,public.chapters to anon,authenticated; grant insert,update,delete on public.comics,public.chapters to authenticated; grant select,insert,update,delete on public.reading_bookmarks,public.reading_history to authenticated;
+insert into storage.buckets(id,name,public) values('comic-assets','comic-assets',true) on conflict(id) do update set public=true;
+drop policy if exists \"Public reads comic assets\" on storage.objects; create policy \"Public reads comic assets\" on storage.objects for select using(bucket_id='comic-assets');
+drop policy if exists \"Admin uploads comic assets\" on storage.objects; create policy \"Admin uploads comic assets\" on storage.objects for insert to authenticated with check(bucket_id='comic-assets' and (auth.jwt()->'app_metadata'->>'role')='admin');
+drop policy if exists \"Admin updates comic assets\" on storage.objects; create policy \"Admin updates comic assets\" on storage.objects for update to authenticated using(bucket_id='comic-assets' and (auth.jwt()->'app_metadata'->>'role')='admin') with check(bucket_id='comic-assets' and (auth.jwt()->'app_metadata'->>'role')='admin');
+drop policy if exists \"Admin deletes comic assets\" on storage.objects; create policy \"Admin deletes comic assets\" on storage.objects for delete to authenticated using(bucket_id='comic-assets' and (auth.jwt()->'app_metadata'->>'role')='admin');
+`;
+function backendConfig(){try{return JSON.parse(localStorage.getItem('komikaV7Supabase')||'{}')}catch(e){return {}}}
+function saveBackendConfig(){
+ const url=document.getElementById('sbUrl').value.trim().replace(/\/+$/,'');
+ const key=document.getElementById('sbKey').value.trim();
+ if(!/^https:\/\/[a-zA-Z0-9-]+\.supabase\.co$/.test(url))return alert('Masukkan URL project Supabase yang valid.');
+ if(!key)return alert('Anon / publishable key wajib diisi.');
+ localStorage.setItem('komikaV7Supabase',JSON.stringify({url,key}));
+ updateBackendStatus('Konfigurasi tersimpan. Belum dites.',false);
+ alert('Konfigurasi tersimpan di browser ini.');
+}
+function updateBackendStatus(message,online){
+ const status=document.getElementById('backendStatus'),dot=document.getElementById('backendDot');
+ if(status)status.textContent=message;
+ if(dot)dot.classList.toggle('online',!!online);
+}
+function loadBackendConfigUI(){
+ const c=backendConfig();
+ if(document.getElementById('sbUrl'))document.getElementById('sbUrl').value=c.url||'';
+ if(document.getElementById('sbKey'))document.getElementById('sbKey').value=c.key||'';
+ const schema=document.getElementById('schemaSql');if(schema)schema.textContent=KOMIKA_SCHEMA_SQL;
+}
+async function supabaseRequest(path,options={}){
+ const c=backendConfig();if(!c.url||!c.key)throw Error('Simpan URL dan Anon Key Supabase terlebih dahulu.');
+ const response=await fetch(c.url+'/rest/v1/'+path,{...options,headers:{apikey:c.key,Authorization:'Bearer '+c.key,'Content-Type':'application/json',Prefer:'return=representation',...(options.headers||{})}});
+ const body=await response.text();if(!response.ok)throw Error('Supabase '+response.status+': '+body.slice(0,260));
+ return body?JSON.parse(body):[];
+}
+async function testBackend(){
+ try{updateBackendStatus('Menguji koneksi...',false);await supabaseRequest('comics?select=id&limit=1');updateBackendStatus('Terhubung · database dapat dibaca',true);alert('Koneksi berhasil! Database Supabase merespons.');}
+ catch(e){updateBackendStatus('Koneksi gagal · periksa URL, key, dan SQL setup',false);alert(e.message);}
+}
+async function pullCloudCatalog(){
+ try{
+  updateBackendStatus('Mengambil katalog cloud...',false);
+  const rows=await supabaseRequest('comics?select=*&visibility=eq.published&order=updated_at.desc');
+  const chapterRows=await supabaseRequest('chapters?select=*&order=chapter_number.asc');
+  const normalizeComicTitle=value=>String(value||'').trim().toLocaleLowerCase().replace(/\s+/g,' ');
+  const merged=rows.map(row=>{
+   // Match by database ID first, then by title to replace the six starter/demo
+   // entries that were created locally without IDs.
+   const rowTitle=normalizeComicTitle(row.title);
+   const local=comics.find(c=>c.id===row.id)||comics.find(c=>normalizeComicTitle(c.title)===rowTitle)||{};
+   const chapters=chapterRows.filter(ch=>ch.comic_id===row.id).map(ch=>({number:ch.chapter_number,title:ch.title||'',pages:Array.isArray(ch.pages)?ch.pages:[]}));
+   return {...local,id:row.id,title:row.title,genre:row.genre||'Action',status:row.status||'Ongoing',desc:row.description||'',img:row.cover_url||local.img||'https://placehold.co/400x550/211b32/ffffff?text=Komika',banner:row.banner_url||'',visibility:row.visibility||'published',chapters,chapter:Math.max(1,...chapters.map(x=>x.number))};
+  });
+  const ids=new Set(merged.map(c=>c.id));
+  const cloudTitles=new Set(merged.map(c=>normalizeComicTitle(c.title)));
+  comics=comics.filter(c=>(!c.id||!ids.has(c.id))&&!cloudTitles.has(normalizeComicTitle(c.title))||c.visibility==='draft').concat(merged);
+  persist();render();renderAdmin();updateBackendStatus('Katalog cloud dimuat · '+rows.length+' komik',true);
+  alert('Berhasil mengambil '+rows.length+' komik published dari cloud.');
+ }catch(e){updateBackendStatus('Gagal mengambil katalog cloud',false);alert(e.message);}
+}
+let komikaAdminSession=null;
+function setMigrationStatus(message,percent){
+ const el=document.getElementById('migrationStatus'),bar=document.getElementById('migrationProgress');
+ if(el)el.textContent=message;if(bar&&Number.isFinite(percent))bar.style.width=Math.max(0,Math.min(100,percent))+'%';
+}
+async function supabaseAdminLogin(){
+ const c=backendConfig(),email=document.getElementById('sbAdminEmail').value.trim(),password=document.getElementById('sbAdminPassword').value;
+ if(!c.url||!c.key)return alert('Simpan konfigurasi Supabase terlebih dahulu.');
+ if(!email||!password)return alert('Email dan password admin wajib diisi.');
+ try{
+  const r=await fetch(c.url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+  const data=await r.json();if(!r.ok)throw Error(data.msg||data.message||data.error_description||'Login gagal.');
+  const claims=JSON.parse(atob(data.access_token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+  if(claims.app_metadata?.role!=='admin')throw Error('Akun berhasil login, tetapi belum memiliki app_metadata.role = admin. Atur role admin di Supabase Auth → Users → user → app_metadata.');
+  komikaAdminSession=data;document.getElementById('adminAuthStatus').textContent='Login sebagai admin: '+(data.user?.email||email);
+  alert('Login admin berhasil. Bulk Sync sudah tersedia.');
+ }catch(e){komikaAdminSession=null;document.getElementById('adminAuthStatus').textContent=e.message;alert(e.message);}
+}
+function supabaseAdminLogout(){komikaAdminSession=null;document.getElementById('adminAuthStatus').textContent='Sudah logout.';setMigrationStatus('Menunggu proses sinkronisasi.',0)}
+async function adminFetch(path,options={}){
+ if(!komikaAdminSession?.access_token)throw Error('Login admin terlebih dahulu.');
+ const c=backendConfig(),r=await fetch(c.url+path,{...options,headers:{apikey:c.key,Authorization:'Bearer '+komikaAdminSession.access_token,'Content-Type':'application/json',...(options.headers||{})}});
+ const t=await r.text();if(!r.ok)throw Error('Supabase '+r.status+': '+t.slice(0,300));return t?JSON.parse(t):null;
+}
+async function uploadLocalAsset(dataUri,path){
+ if(!dataUri||!/^data:image\//i.test(dataUri))return dataUri||null;
+ const parts=dataUri.split(','),mime=(parts[0].match(/data:(.*?);base64/)||[])[1]||'image/jpeg';
+ const bytes=Uint8Array.from(atob(parts[1]),ch=>ch.charCodeAt(0));
+ const c=backendConfig(),r=await fetch(c.url+'/storage/v1/object/comic-assets/'+path,{method:'POST',headers:{apikey:c.key,Authorization:'Bearer '+komikaAdminSession.access_token,'Content-Type':mime,'x-upsert':'true'},body:bytes});
+ const t=await r.text();if(!r.ok)throw Error('Upload gambar gagal: '+t.slice(0,220));
+ return c.url+'/storage/v1/object/public/comic-assets/'+path;
+}
+async function pushCloudCatalog(){
+ if(!komikaAdminSession?.access_token)return alert('Login admin terlebih dahulu.');
+ const btn=document.getElementById('bulkSyncBtn');if(btn)btn.disabled=true;
+ try{
+  const pagesStore=getChapterPages(),total=comics.length||1;let done=0,chapterCount=0,assetCount=0;
+  for(const comic of comics){
+   const safeId=String(comic.id||('comic-'+done)).replace(/[^a-zA-Z0-9_-]/g,'-');
+   let cover=comic.img||null,banner=comic.banner||null;
+   if(cover?.startsWith('data:image/')){cover=await uploadLocalAsset(cover, safeId+'/cover.jpg');assetCount++}
+   if(banner?.startsWith('data:image/')){banner=await uploadLocalAsset(banner,safeId+'/banner.jpg');assetCount++}
+   await adminFetch('/rest/v1/comics?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:comic.id,title:comic.title,genre:comic.genre||null,status:comic.status||null,description:comic.desc||null,cover_url:cover,banner_url:banner,visibility:comic.visibility==='draft'?'draft':'published',updated_at:new Date().toISOString()})});
+   for(const ch of (comic.chapters||[])){
+    const rawPages=pagesStore[comics.indexOf(comic)+'-'+ch.number]||ch.pages||[];
+    const uploaded=[];
+    for(let pi=0;pi<rawPages.length;pi++){
+     let page=rawPages[pi];
+     if(typeof page==='string'&&page.startsWith('data:image/')){page=await uploadLocalAsset(page,safeId+'/chapter-'+ch.number+'/page-'+(pi+1)+'.jpg');assetCount++}
+     uploaded.push(page);
+    }
+    await adminFetch('/rest/v1/chapters?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:safeId+'-chapter-'+ch.number,comic_id:comic.id,chapter_number:Number(ch.number),title:ch.title||null,pages:uploaded,updated_at:new Date().toISOString()})});
+    chapterCount++;
+   }
+   done++;setMigrationStatus('Memindahkan '+comic.title+' ('+done+'/'+comics.length+')',done/total*100);
+  }
+  updateBackendStatus('Terhubung · sinkronisasi selesai',true);
+  setMigrationStatus('Selesai: '+done+' komik, '+chapterCount+' chapter, '+assetCount+' gambar diproses.',100);
+  alert('Bulk Sync selesai! '+done+' komik dan '+chapterCount+' chapter berhasil dikirim. Data lokal tetap aman.');
+ }catch(e){setMigrationStatus('Sinkronisasi terhenti: '+e.message,0);alert(e.message);}
+ finally{if(btn)btn.disabled=false;}
+}
+async function copySchema(){try{await navigator.clipboard.writeText(KOMIKA_SCHEMA_SQL);alert('SQL berhasil disalin.')}catch(e){alert('Clipboard tidak tersedia. Pilih dan salin SQL dari panel.')}}
+
+// V6 Admin Studio: local-first content management.
+let pendingCoverData='', pendingChapterFiles=[];
+function ensureContentModel(){
+ comics.forEach((c,i)=>{
+  if(!c.id)c.id='comic-'+Date.now()+'-'+i;
+  if(!Array.isArray(c.chapters))c.chapters=[];
+  if(!c.visibility)c.visibility='published';
+ });
+}
+function adminTab(tab){
+ ['catalog','editor','chapters'].forEach(name=>{
+  document.getElementById('admin'+name[0].toUpperCase()+name.slice(1)).hidden=name!==tab;
+  document.querySelectorAll('[data-admin-tab]').forEach(b=>b.classList.toggle('active',b.dataset.adminTab===tab));
+ });
+ if(tab==='catalog')renderAdminCatalog();
+ if(tab==='chapters'){populateChapterComic();renderChapterManager()}
+ if(tab==='editor')document.getElementById('comicPreview').hidden=true;
+}
+function renderAdmin(){
+ ensureContentModel();
+ document.getElementById('adminStats').innerHTML=`<div class="admin-stat"><b>${comics.length}</b><small>Total komik</small></div><div class="admin-stat"><b>${comics.filter(c=>c.visibility==='published').length}</b><small>Published</small></div><div class="admin-stat"><b>${comics.reduce((n,c)=>n+(c.chapters||[]).length,0)}</b><small>Total chapter</small></div>`;
+ renderAdminCatalog();
+}
+function renderAdminCatalog(){
+ const q=(document.getElementById('adminSearch')?.value||'').toLowerCase();
+ const filtered=comics.map((c,i)=>({c,i})).filter(x=>x.c.title.toLowerCase().includes(q));
+ document.getElementById('adminComicList').innerHTML=filtered.length?filtered.map(({c,i})=>`<div class="admin-comic-row"><img src="${c.img}" onerror="this.src='https://placehold.co/100x140/211b32/ffffff?text=Cover'"><div class="admin-comic-meta"><b>${escapeHTML(c.title)}</b><small>${escapeHTML(c.genre)} · ${(c.chapters||[]).length} chapter · ${c.visibility==='draft'?'Draft':'Published'}</small></div><div class="admin-comic-buttons"><button class="secondary" onclick="editComic(${i})">Edit</button><button class="secondary" onclick="manageComicChapters(${i})">Ch.</button><button class="secondary" onclick="removeComic(${i})">✕</button></div></div>`).join(''):'<div class="empty">Belum ada komik yang cocok.</div>';
+}
+function escapeHTML(s){return String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+function newComic(){
+ document.getElementById('editComicId').value='';
+ ['editTitle','editDesc','editCoverUrl','editBannerUrl'].forEach(id=>document.getElementById(id).value='');
+ document.getElementById('editGenre').value='Action';document.getElementById('editStatus').value='Draft';
+ document.querySelector('input[name="publishState"][value="draft"]').checked=true;
+ pendingCoverData='';document.getElementById('coverPreview').innerHTML='<span>Belum ada cover</span>';
+ document.getElementById('editorHeading').textContent='Komik Baru';adminTab('editor');
+}
+function editComic(i){
+ const c=comics[i];document.getElementById('editComicId').value=i;
+ document.getElementById('editTitle').value=c.title||'';document.getElementById('editGenre').value=c.genre||'Action';
+ document.getElementById('editStatus').value=c.status||'Ongoing';document.getElementById('editDesc').value=c.desc||'';
+ document.getElementById('editCoverUrl').value=c.img||'';document.getElementById('editBannerUrl').value=c.banner||'';
+ document.querySelector(`input[name="publishState"][value="${c.visibility==='draft'?'draft':'published'}"]`).checked=true;
+ pendingCoverData='';document.getElementById('coverPreview').innerHTML=c.img?`<img src="${c.img}" alt="Cover preview">`:'<span>Belum ada cover</span>';
+ document.getElementById('editorHeading').textContent='Edit Komik';adminTab('editor');
+}
+function compressImageFile(file,maxSide=1400,quality=.82){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();reader.onerror=reject;
+  reader.onload=()=>{const img=new Image();img.onerror=reject;img.onload=()=>{
+   const scale=Math.min(1,maxSide/Math.max(img.width,img.height)),canvas=document.createElement('canvas');
+   canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);
+   canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+   resolve(canvas.toDataURL('image/jpeg',quality));
+  };img.src=reader.result};reader.readAsDataURL(file);
+ });
+}
+async function handleCoverUpload(event){
+ const file=event.target.files?.[0];if(!file)return;
+ try{pendingCoverData=await compressImageFile(file,1200,.84);document.getElementById('coverPreview').innerHTML=`<img src="${pendingCoverData}" alt="Cover preview">`;document.getElementById('editCoverUrl').value='';}
+ catch(e){alert('Gagal membaca gambar cover.')}
+ event.target.value='';
+}
+function saveComic(){
+ const title=document.getElementById('editTitle').value.trim();if(!title)return alert('Judul komik wajib diisi.');
+ const rawId=document.getElementById('editComicId').value,idx=rawId===''?-1:Number(rawId);
+ const old=idx>=0?comics[idx]:{};
+ const visibility=document.querySelector('input[name="publishState"]:checked').value;
+ const item={...old,id:old.id||'comic-'+Date.now(),title,genre:document.getElementById('editGenre').value,status:document.getElementById('editStatus').value,desc:document.getElementById('editDesc').value.trim(),img:pendingCoverData||document.getElementById('editCoverUrl').value.trim()||old.img||'https://placehold.co/400x550/211b32/ffffff?text=Komika',banner:document.getElementById('editBannerUrl').value.trim(),visibility,chapters:old.chapters||[],chapter:Math.max(old.chapter||1,(old.chapters||[]).length),rating:old.rating||'New'};
+ if(idx<0)comics.push(item);else comics[idx]=item;
+ try{persist();localStorage.setItem('komikaV6ContentModel','true')}catch(e){alert('Penyimpanan penuh. Gambar mungkin terlalu besar.');return}
+ pendingCoverData='';render();renderAdmin();adminTab('catalog');alert('Komik berhasil disimpan di katalog lokal.');
+}
+function previewComic(){
+ const title=document.getElementById('editTitle').value.trim()||'Judul komik',desc=document.getElementById('editDesc').value||'Sinopsis belum diisi.',img=pendingCoverData||document.getElementById('editCoverUrl').value;
+ const box=document.getElementById('comicPreview');box.hidden=false;box.innerHTML=`${img?`<img src="${img}">`:''}<b>${escapeHTML(title)}</b><p class="muted" style="font-size:11px">${escapeHTML(desc)}</p><small>Preview lokal · belum dipublikasikan</small><div style="clear:both"></div>`;
+}
+function populateChapterComic(){
+ const select=document.getElementById('chapterComic'),previous=select.value;
+ select.innerHTML=comics.map((c,i)=>`<option value="${i}">${escapeHTML(c.title)}</option>`).join('');
+ if(previous!==''&&comics[Number(previous)])select.value=previous;
+}
+function manageComicChapters(i){adminTab('chapters');document.getElementById('chapterComic').value=i;renderChapterManager()}
+function renderChapterManager(){
+ const i=Number(document.getElementById('chapterComic').value||0),c=comics[i];if(!c){document.getElementById('chapterList').innerHTML='<div class="empty">Buat komik terlebih dahulu.</div>';return}
+ if(!Array.isArray(c.chapters))c.chapters=[];
+ document.getElementById('chapterList').innerHTML=c.chapters.length?[...c.chapters].sort((a,b)=>b.number-a.number).map(ch=>`<div class="chapter-admin-row"><span><b>Chapter ${ch.number}</b><br><small class="muted">${escapeHTML(ch.title||'Tanpa judul')} · ${(ch.pages||[]).length} halaman</small></span><div class="row"><button class="secondary" onclick="previewAdminChapter(${i},${ch.number})">Preview</button><button class="secondary" onclick="deleteChapter(${i},${ch.number})">Hapus</button></div></div>`).join(''):'<div class="empty">Belum ada chapter untuk komik ini.</div>';
+}
+async function previewChapterFiles(event){
+ const picked=[...(event.target.files||[])];
+ const imageExt=/\.(jpe?g|png|webp|gif|avif|bmp)$/i;
+ pendingChapterFiles=picked.filter(file=>(file.type||'').toLowerCase().startsWith('image/')||imageExt.test(file.name||''))
+  .sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+ const info=document.getElementById('chapterFileInfo'),holder=document.getElementById('chapterUploadPreview');
+ holder.innerHTML='';
+ if(!pendingChapterFiles.length){
+  info.textContent=picked.length?'File terpilih tidak dikenali sebagai gambar. Coba pilih JPG, PNG, atau WEBP.':'Belum ada gambar dipilih.';
+  return;
+ }
+ info.textContent=`${pendingChapterFiles.length} gambar dipilih · urut berdasarkan nama file · menyiapkan preview...`;
+ const previewFiles=pendingChapterFiles.slice(0,30);
+ for(const file of previewFiles){
+  try{
+   const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error||new Error('Gagal membaca file'));reader.readAsDataURL(file)});
+   const wrap=document.createElement('div');wrap.style.minWidth='0';
+   const img=document.createElement('img');img.src=dataUrl;img.alt=file.name;img.loading='lazy';img.onerror=()=>{img.remove();const err=document.createElement('small');err.textContent='Preview gagal';wrap.appendChild(err)};
+   const name=document.createElement('small');name.textContent=file.name;name.style.cssText='display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:var(--muted);margin-top:3px';
+   wrap.appendChild(img);wrap.appendChild(name);holder.appendChild(wrap);
+  }catch(err){console.warn('Preview gagal:',file.name,err)}
+ }
+ info.textContent=`${pendingChapterFiles.length} gambar dipilih · urut berdasarkan nama file${pendingChapterFiles.length>30?' · preview menampilkan 30 gambar pertama':''}`;
+}
+async function saveChapter(){
+ const i=Number(document.getElementById('chapterComic').value||0),c=comics[i],number=Number(document.getElementById('chapterNumber').value);
+ if(!c)return alert('Pilih komik terlebih dahulu.');if(!Number.isInteger(number)||number<1)return alert('Nomor chapter tidak valid.');
+ if(!pendingChapterFiles.length)return alert('Pilih minimal satu gambar halaman.');
+ const btn=document.querySelector('#adminChapters .chapter-create .primary');btn.disabled=true;btn.textContent='Memproses gambar...';
+ try{
+  const pages=[];for(const file of pendingChapterFiles)pages.push(await compressImageFile(file,1800,.82));
+  c.chapters=c.chapters||[];const existing=c.chapters.findIndex(ch=>ch.number===number);
+  const chapterData={number,title:document.getElementById('chapterTitle').value.trim(),pages};
+  if(existing>=0)c.chapters[existing]=chapterData;else c.chapters.push(chapterData);
+  c.chapters.sort((a,b)=>a.number-b.number);c.chapter=Math.max(c.chapter||1,number);
+  const allPages=getChapterPages();allPages[i+'-'+number]=pages;saveChapterPages(allPages);
+  persist();pendingChapterFiles=[];document.getElementById('chapterFiles').value='';document.getElementById('chapterTitle').value='';document.getElementById('chapterFileInfo').textContent='Chapter tersimpan.';document.getElementById('chapterUploadPreview').innerHTML='';
+  render();renderAdmin();renderChapterManager();alert('Chapter berhasil disimpan.');
+ }catch(e){alert('Gagal menyimpan. Penyimpanan browser mungkin penuh. Coba gambar lebih kecil atau lebih sedikit.')}
+ finally{btn.disabled=false;btn.textContent='Simpan Chapter'}
+}
+function previewAdminChapter(i,n){current=i;readChapter(n)}
+function deleteChapter(i,n){
+ if(!confirm('Hapus chapter '+n+'?'))return;
+ comics[i].chapters=(comics[i].chapters||[]).filter(ch=>ch.number!==n);
+ const data=getChapterPages();delete data[i+'-'+n];saveChapterPages(data);
+ comics[i].chapter=Math.max(1,...comics[i].chapters.map(ch=>ch.number));persist();render();renderAdmin();renderChapterManager();
+}
+function removeComic(i){
+ if(!confirm('Hapus komik ini beserta data chapter-nya?'))return;
+ comics.splice(i,1);
+ bookmarks=bookmarks.filter(x=>x!==i).map(x=>x>i?x-1:x);
+ history=history.filter(x=>x.i!==i).map(x=>({...x,i:x.i>i?x.i-1:x.i}));
+ const pageData=getChapterPages(),rekey={};Object.entries(pageData).forEach(([key,value])=>{const [ci,ch]=key.split('-').map(Number);if(ci<i)rekey[key]=value;else if(ci>i)rekey[(ci-1)+'-'+ch]=value});
+ saveChapterPages(rekey);localStorage.setItem('komikaV4Bookmarks',JSON.stringify(bookmarks));localStorage.setItem('komikaV4History',JSON.stringify(history));persist();render();renderAdmin();
+}
+// ===== KOMIKA V8: public reading + per-account bookmarks/history =====
+let readerSession = null;
+let readerBookmarks = new Set();
+let readerHistory = [];
+let readerAuthBusy = false;
+function readerConfig(){return backendConfig()}
+function readerAuthHeaders(){const c=readerConfig();if(!readerSession?.access_token)throw Error('Login terlebih dahulu.');return {apikey:c.key,Authorization:'Bearer '+readerSession.access_token,'Content-Type':'application/json',Prefer:'return=representation'}}
+async function readerAuthRequest(path,options={}){const c=readerConfig();if(!c.url||!c.key)throw Error('Koneksi Supabase belum disimpan di Admin Studio.');const r=await fetch(c.url+path,{...options,headers:{apikey:c.key,Authorization:'Bearer '+(readerSession?.access_token||c.key),'Content-Type':'application/json',...(options.headers||{})}});const t=await r.text();let d;try{d=t?JSON.parse(t):null}catch{d=t}if(!r.ok)throw Error(d?.msg||d?.message||d?.error_description||d?.hint||('Supabase '+r.status+': '+String(t).slice(0,240)));return d}
+function setReaderSession(data){readerSession=data;user=data?.user||null;if(data)localStorage.setItem('komikaV8ReaderSession',JSON.stringify(data));else localStorage.removeItem('komikaV8ReaderSession')}
+async function readerSignup(){if(readerAuthBusy)return;const email=document.getElementById('readerEmail')?.value.trim(),password=document.getElementById('readerPassword')?.value;if(!email||!password)return alert('Isi email dan password.');if(password.length<6)return alert('Password minimal 6 karakter.');readerAuthBusy=true;try{const d=await readerAuthRequest('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password})});if(d?.access_token){setReaderSession(d);await loadReaderData();renderProfile();alert('Akun berhasil dibuat dan kamu sudah login.')}else alert('Pendaftaran terkirim. Cek email untuk konfirmasi akun, lalu login.')}catch(e){alert(e.message)}finally{readerAuthBusy=false}}
+async function readerLogin(){if(readerAuthBusy)return;const email=document.getElementById('readerEmail')?.value.trim(),password=document.getElementById('readerPassword')?.value;if(!email||!password)return alert('Isi email dan password.');readerAuthBusy=true;try{const d=await readerAuthRequest('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});setReaderSession(d);await loadReaderData();renderProfile();renderContinue();if(document.getElementById('library').classList.contains('active'))renderSaved();if(document.getElementById('history').classList.contains('active'))renderHistory();alert('Login berhasil. Bookmark dan riwayat sudah disinkronkan.')}catch(e){alert(e.message)}finally{readerAuthBusy=false}}
+async function readerLogout(){try{if(readerSession?.access_token)await readerAuthRequest('/auth/v1/logout',{method:'POST',headers:readerAuthHeaders()})}catch(e){}setReaderSession(null);readerBookmarks=new Set();readerHistory=[];renderProfile();renderContinue();if(document.getElementById('library').classList.contains('active'))renderSaved();if(document.getElementById('history').classList.contains('active'))renderHistory()}
+async function loadReaderData(){if(!readerSession?.access_token)return;const [b,h]=await Promise.all([readerAuthRequest('/rest/v1/reading_bookmarks?select=comic_id&order=created_at.desc',{headers:readerAuthHeaders()}),readerAuthRequest('/rest/v1/reading_history?select=comic_id,chapter_number,updated_at&order=updated_at.desc',{headers:readerAuthHeaders()})]);readerBookmarks=new Set((b||[]).map(x=>x.comic_id));readerHistory=(h||[]).map(x=>({id:x.comic_id,ch:x.chapter_number,updated_at:x.updated_at}));bookmarks=comics.map((c,i)=>readerBookmarks.has(c.id)?i:-1).filter(i=>i>=0);history=readerHistory.map(h=>({i:comics.findIndex(c=>c.id===h.id),ch:h.ch,id:h.id})).filter(h=>h.i>=0);}
+async function saveReaderHistory(comic,n){if(!readerSession?.user?.id)return;try{await readerAuthRequest('/rest/v1/reading_history?on_conflict=user_id,comic_id',{method:'POST',headers:{...readerAuthHeaders(),Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:readerSession.user.id,comic_id:comic.id,chapter_number:n,updated_at:new Date().toISOString()})});const old=readerHistory.find(x=>x.id===comic.id);if(old){old.ch=n;old.updated_at=new Date().toISOString()}else readerHistory.unshift({id:comic.id,ch:n,updated_at:new Date().toISOString()});history=readerHistory.map(h=>({i:comics.findIndex(c=>c.id===h.id),ch:h.ch,id:h.id})).filter(h=>h.i>=0);renderContinue()}catch(e){console.warn('Gagal menyimpan riwayat cloud:',e.message)}}
+async function toggleBookmark(){if(!readerSession?.user?.id){go('profile');return alert('Login dulu untuk menyimpan bookmark. Membaca komik tetap bisa tanpa login.')}const c=comics[current];if(!c?.id)return;try{if(readerBookmarks.has(c.id)){await readerAuthRequest('/rest/v1/reading_bookmarks?comic_id=eq.'+encodeURIComponent(c.id),{method:'DELETE',headers:readerAuthHeaders()});readerBookmarks.delete(c.id)}else{await readerAuthRequest('/rest/v1/reading_bookmarks',{method:'POST',headers:readerAuthHeaders(),body:JSON.stringify({user_id:readerSession.user.id,comic_id:c.id})});readerBookmarks.add(c.id)}bookmarks=comics.map((x,i)=>readerBookmarks.has(x.id)?i:-1).filter(i=>i>=0);openComic(current);if(document.getElementById('library').classList.contains('active'))renderSaved()}catch(e){alert('Bookmark gagal disimpan: '+e.message)}}
+function renderSaved(){const el=document.getElementById('saved');if(!readerSession?.user?.id){el.innerHTML='<div class="login-required"><b>Bookmark tersimpan di akunmu</b><p class="muted">Login untuk melihat komik yang kamu simpan. Kamu tetap bisa membaca tanpa akun.</p><button class="primary" onclick="go(\'profile\')">Login / Daftar</button></div>';return}const rows=comics.map((c,i)=>({c,i})).filter(x=>readerBookmarks.has(x.c.id));el.innerHTML=rows.length?rows.map(x=>card(x.c,x.i)).join(''):'<div class="empty">Belum ada bookmark. Simpan komik favorit dari halaman detail.</div>'}
+function renderHistory(){const el=document.getElementById('historyList');if(!readerSession?.user?.id){el.innerHTML='<div class="login-required"><b>Riwayat membaca tersimpan di akunmu</b><p class="muted">Login untuk menyinkronkan dan melanjutkan bacaan dari perangkat lain.</p><button class="primary" onclick="go(\'profile\')">Login / Daftar</button></div>';return}const rows=readerHistory.map(h=>({h,c:comics.find(c=>c.id===h.id)})).filter(x=>x.c);el.innerHTML=rows.length?rows.map(({h,c})=>`<div class="chapter" onclick="openComic(${comics.indexOf(c)});readChapter(${h.ch})"><span>${escapeHTML(c.title)}<br><small class="muted">Chapter ${h.ch}</small></span><b>›</b></div>`).join(''):'<div class="empty">Riwayat membaca masih kosong.</div>'}
+function renderContinue(){const box=document.getElementById('continueBox');if(!box)return;if(!readerSession?.user?.id){box.innerHTML='<div class="empty">Login untuk menyimpan dan melanjutkan riwayat bacaan di semua perangkat.</div>';return}const h=readerHistory[0],c=h&&comics.find(x=>x.id===h.id);box.innerHTML=c?`<div class="continue" onclick="openComic(${comics.indexOf(c)});readChapter(${h.ch})"><img src="${c.img}"><div class="continue-info"><h3>${escapeHTML(c.title)}</h3><p>${escapeHTML(c.genre||'Komik')} · ${escapeHTML(c.status||'')}</p><div class="progress"><span></span></div><small>Chapter ${h.ch}</small></div><button class="play">▶</button></div>`:'<div class="empty">Belum ada bacaan. Yuk mulai baca komik!</div>'}
+function openComic(i){current=i;const c=comics[i];if(!c)return;const chs=[...(c.chapters||[])].sort((a,b)=>b.number-a.number);const isSaved=readerBookmarks.has(c.id);document.getElementById('detailBox').innerHTML=`<div class="detail-top"><img src="${c.img}" onerror="this.src='https://placehold.co/400x550/211b32/ffffff?text=Komika'"><div><small class="muted">${escapeHTML(c.genre||'Komik')} · ${escapeHTML(c.status||'')}</small><h1>${escapeHTML(c.title)}</h1><div class="star">★ ${escapeHTML(c.rating||'—')}</div><p class="muted">${escapeHTML(c.desc||'')}</p><small class="muted">${chs.length} chapter tersedia</small></div></div><div class="row"><button class="primary" ${chs.length?'':'disabled'} onclick="readChapter(${chs.length?chs[chs.length-1].number:1})">▶ Mulai Baca</button><button class="secondary" onclick="toggleBookmark()">${isSaved?'♥ Tersimpan':'♡ Bookmark'}</button></div><h3 style="margin-top:24px">Daftar Chapter</h3>${chs.length?chs.map(ch=>`<div class="chapter" onclick="readChapter(${Number(ch.number)})"><span>Chapter ${ch.number}${ch.title?' · '+escapeHTML(ch.title):''}</span><small class="muted">Baca ›</small></div>`).join(''):'<div class="empty">Belum ada chapter yang dipublikasikan.</div>'}`;go('detail')}
+function readChapter(n){chapter=Math.max(1,Number(n)||1);const c=comics[current],ch=(c?.chapters||[]).find(x=>Number(x.number)===chapter);if(!c||!ch){alert('Chapter ini belum tersedia di cloud.');return}document.getElementById('readTitle').textContent='Chapter '+chapter+(ch.title?' · '+ch.title:'');document.getElementById('readSub').textContent=c.title+' · Scroll vertikal';const pages=Array.isArray(ch.pages)?ch.pages:[];document.getElementById('pages').innerHTML=pages.length?pages.map((src,i)=>`<img class="reader-page" loading="${i<2?'eager':'lazy'}" src="${src}" alt="Halaman ${i+1}">`).join(''):'<div class="empty">Halaman chapter belum tersedia.</div>';document.getElementById('readerProgress').style.width='0%';go('reader');if(readerSession?.user?.id)saveReaderHistory(c,chapter);else{const note=document.querySelector('#reader .reader-tools');}renderContinue()}
+const originalGo=go;go=function(id){if((id==='library'||id==='history')&&!readerSession?.user?.id){originalGo('profile');renderProfile();return}originalGo(id)};
+function renderProfile(){const box=document.getElementById('profileBox');if(readerSession?.user?.id){box.innerHTML=`<h2>Halo, ${escapeHTML(readerSession.user.email||'Pembaca')} 👋</h2><p class="muted">${escapeHTML(readerSession.user.email||'')}</p><div class="account-status">${readerBookmarks.size} bookmark · ${readerHistory.length} riwayat tersimpan di cloud</div><p class="account-note">Data bookmark dan riwayat ini hanya bisa diakses oleh akunmu.</p><button class="secondary" onclick="readerLogout()">Keluar dari akun</button>`}else{box.innerHTML=`<h3>Akun Pembaca</h3><p class="account-note">Jelajahi dan baca komik tanpa login. Masuk atau daftar hanya jika ingin menyimpan bookmark dan riwayat membaca.</p><label class="admin-label">Email</label><input class="auth-input" id="readerEmail" type="email" placeholder="email@contoh.com" autocomplete="email"><label class="admin-label">Password</label><input class="auth-input" id="readerPassword" type="password" placeholder="Minimal 6 karakter" autocomplete="current-password"><div class="account-actions"><button class="primary" onclick="readerLogin()">Login</button><button class="secondary" onclick="readerSignup()">Buat akun baru</button></div><p class="account-note">Jika konfirmasi email aktif di Supabase, cek inbox setelah mendaftar.</p>`}}
+async function restoreReaderSession(){try{const raw=localStorage.getItem('komikaV8ReaderSession');if(!raw)return;const d=JSON.parse(raw);if(!d?.access_token||!d?.refresh_token)return;readerSession=d;const c=readerConfig();const r=await fetch(c.url+'/auth/v1/user',{headers:{apikey:c.key,Authorization:'Bearer '+d.access_token}});if(r.ok){d.user=await r.json();setReaderSession(d);await loadReaderData();return}const refreshed=await readerAuthRequest('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:d.refresh_token})});setReaderSession(refreshed);await loadReaderData()}catch(e){console.warn('Sesi pembaca perlu login ulang:',e.message);setReaderSession(null)}}
+// A reader can browse publicly; only personal shelves require an account.
+(async()=>{const c=readerConfig();if(c.url&&c.key){try{await pullCloudCatalog()}catch(e){console.warn('Katalog cloud belum dimuat:',e.message)}}await restoreReaderSession();render();renderProfile();if(readerSession?.user?.id){renderContinue()}})();
+
+render();renderProfile();
+</script></body></html>
